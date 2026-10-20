@@ -116,45 +116,31 @@ flowchart TD
 
 ### 5.2 Boîte 2 : Faire tourner chaque matin (Ordonnancement & Execution)
 
-* **Option A (Retenue) — GitHub Actions / GitLab CI (Scheduled Workflows) :**
-* *Pourquoi :* Respecte la contrainte de budget zéro, ne nécessite pas de maintenir un serveur local allumé à 7 h, s'intègre nativement dans le dépôt.
+* **Option A (Retenue) —  Apache Airflow :**
+* *Pourquoi :* Planifie le pipeline à 7 h avec cron, organise les tâches dans un DAG et permet de suivre les exécutions et les erreurs.
 
 
 
-
-* **Option B (Écartée) — Orchestrateur lourd (Apache Airflow / Dagster) :**
-* *Raisons du rejet :* Surchargé pour le besoin initial, gourmand en ressources mémoire sur les machines locales.
-
-
-
+* **Option B (Écartée) — Prefect :**
+* *Raisons du rejet :* Outil similaire, mais Airflow est retenu pour sa gestion des DAG et son interface de supervision. Utiliser les deux serait redondant.
 
 
 ### 5.3 Boîte 3 : Stocker (Brut et Propre)
 
-* **Stockage Brut :**
-* *Option A (Retenue) — Format `JSONL` / `Parquet` sur système de fichiers local :*
-* *Pourquoi :* Préserve l'exhaustivité de la donnée brute et sa provenance sans imposer de schéma strict.
-
-
-
-
+**Stockage Brut :**
+*Option Retenue — MinIO (S3) + PostgreSQL :*
+*Pourquoi :* MinIO (S3) stocke les fichiers flux bruts (les fichiers XML/JSON d'origine récupérés des flux RSS) dans un bucket sécurisé, garantissant une traçabilité immuable. PostgreSQL enregistre les métadonnées de chaque flux ingéré et l'état des tâches pour le suivi d'exécution.
+ 
 * *Option B (Écartée) — Base NoSQL (MongoDB) :*
 * *Raisons du rejet :* Complexité d'administration inutile pour le volume initial.
-
-
-
-
-* **Stockage Propre :**
-* *Option A (Retenue) — Base relationnelle SQLite / PostgreSQL :*
-* *Pourquoi :* Validation stricte du schéma, prévention native des doublons via contraintes d'unicité.
-
-
-
-
+ 
+ 
+**Stockage Propre (Analytique / Application) :**
+*Option Retenue — Base relationnelle PostgreSQL :*
+*Pourquoi :* Validation stricte du schéma, requêtage SQL puissant pour filtrer par thématiques ou départements franciliens, et prévention native des doublons via des contraintes d'unicité (ex: contrainte UNIQUE sur l'URL ou l'ID de l'article).
+ 
 * *Option B (Écartée) — Fichiers CSV nettoyés :*
 * *Raisons du rejet :* Pas de vérification d'intégrité ni de gestion efficace des doublons.
-
-
 
 
 
@@ -177,14 +163,14 @@ flowchart TD
 
 ### 5.5 Boîte 5 : Surveiller (Observabilité)
 
-* **Option A (Retenue) — Logging structuré JSON + Webhooks de notifications (Discord/Slack) + Dashboard HTML :**
-* *Pourquoi :* Alerting immédiat en cas d'échec du run de 7 h, génération frugale d'un rapport d'exécution.
+* **Option A (Retenue) — Prometheus + Grafana :**
+* *Pourquoi :* Prometheus collecte et historise les métriques du pipeline, tandis que Grafana fournit des tableaux de bord pour suivre les exécutions, leur durée, les erreurs de collecte et les volumes d'articles traités. Cette stack open source s'intègre à Docker Compose et pourra être reprise dans l'environnement de production.
 
 
 
 
-* **Option B (Écartée) — Stack Prometheus + Grafana :**
-* *Raisons du rejet :* Infrastructure trop lourde à déployer au TD 1 avant la fourniture de l'environnement de production.
+* **Option B (Écartée) — Logging structuré JSON + Webhooks de notifications (Discord/Slack) + Dashboard HTML :**
+* *Raisons du rejet :* Cette solution fournit un suivi moins centralisé et moins adapté à l'historisation et à la visualisation des métriques que Prometheus et Grafana.
 
 
 
