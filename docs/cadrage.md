@@ -58,37 +58,53 @@ L'enjeu principal du projet ne réside pas uniquement dans le développement fon
 
 ## 4. Schéma d'architecture globale
 
-Le pipeline s'articule autour des 6 boîtes fonctionnelles du projet :
+Le pipeline s'articule autour des 6 boîtes fonctionnelles du projet. L'ensemble tourne dans des conteneurs décrits par Docker Compose, orchestrés par Airflow et supervisés par Prometheus / Grafana.
 
 ```mermaid
 flowchart TD
-    subgraph S1 ["1. Collecte"]
-        A[Sources PQR / PQN] -->|RSS / XML| B[Collecteur de Flux]
+    subgraph S6 ["6. Orchestration, Supervision & IaC — Docker / Docker Compose"]
+        J["Apache Airflow<br/>DAG planifié par cron à 07h00"]
+        K["Prometheus (métriques)<br/>+ Grafana (dashboards)"]
+        M["Alertmanager"]
+        N["Alerte email SMTP<br/>(échec flux / DAG)"]
+        K -->|"Règles d'alerte"| M
+        M -->|Notification| N
     end
 
-    subgraph S2 ["2. Stockage Brut"]
-        B -->|Fichiers bruts + provenance| C[(Data Lake / Stockage Brut)]
+    subgraph S1 ["1. Collecte"]
+        A["Sources PQR / PQN<br/>(sources.csv)"] -->|"RSS / Atom, robots.txt,<br/>User-Agent, 1 req/s"| B["Collecteur Python<br/>feedparser"]
+    end
+
+    subgraph S2 ["2. Stockage brut"]
+        B -->|"XML / JSON bruts + provenance"| C[("MinIO (S3)<br/>bucket brut immuable")]
+        B -->|"Métadonnées des flux<br/>+ état des tâches"| P1[("PostgreSQL<br/>schéma suivi")]
     end
 
     subgraph S3 ["3. Nettoyage & Qualité"]
-        C -->|Dédoublonnage & Normalisation| D[Nettoyage & Filtrage]
-        D -->|Rapport de qualité| E[(Base SQL / Propre)]
+        C --> D["Nettoyage & filtrage Python<br/>fraîcheur < 24h, hash titre/URL"]
+        D -->|"Contrainte UNIQUE (URL / ID)<br/>+ rapport de qualité"| E[("PostgreSQL<br/>schéma propre")]
     end
 
     subgraph S4 ["4. Thèmes (MLOps)"]
-        E -->|Vectorisation & Clustering| F[Regroupement par Thèmes]
-        F <-->|Traçabilité / Registre| G[MLflow / Registry]
+        E --> F["SentenceTransformers<br/>+ BERTopic / K-Means"]
+        F <-->|"Params, métriques,<br/>versions de modèles"| G["MLflow<br/>Tracking / Registry"]
     end
 
     subgraph S5 ["5. Livraison"]
-        F -->|Édition structurée| H[Générateur de Gazette]
-        H -->|Publication à 07h00| I[Livraison / Édition du jour]
+        F -->|"Articles + thème"| H["Générateur de Gazette<br/>(édition structurée)"]
+        H -->|"Publication 07h00"| I["Édition du jour"]
     end
 
-    subgraph S6 ["6. Supervision & IaC"]
-        J[Ordonnanceur / Cron / CI-CD] -->|Déclenchement 07h| B
-        K[Monitoring / Logs / Alertes] -->|Alertes / Métriques| L
-    end
+    J -->|"Déclenche 07h00"| B
+    J -.->|"Orchestre"| D
+    J -.->|"Orchestre"| F
+    J -.->|"Orchestre"| H
+
+    B -.->|"Métriques"| K
+    D -.->|"Métriques"| K
+    F -.->|"Métriques"| K
+    H -.->|"Métriques"| K
+    J -.->|"Statut des runs"| K
 ```
 
 ---
@@ -127,16 +143,18 @@ flowchart TD
 
 ### 5.3 Boîte 3 : Stocker (Brut et Propre)
 
-**Stockage Brut :**
-*Option Retenue — MinIO (S3) + PostgreSQL :*
-*Pourquoi :* MinIO (S3) stocke les fichiers flux bruts (les fichiers XML/JSON d'origine récupérés des flux RSS) dans un bucket sécurisé, garantissant une traçabilité immuable. PostgreSQL enregistre les métadonnées de chaque flux ingéré et l'état des tâches pour le suivi d'exécution.
+**Stockage Brut :**  
+  
+* *Option A (Retenue) — MinIO (S3) + PostgreSQL :*
+* *Pourquoi :* MinIO (S3) stocke les fichiers flux bruts (les fichiers XML/JSON d'origine récupérés des flux RSS) dans un bucket sécurisé, garantissant une traçabilité immuable. PostgreSQL enregistre les métadonnées de chaque flux ingéré et l'état des tâches pour le suivi d'exécution.
  
 * *Option B (Écartée) — Base NoSQL (MongoDB) :*
 * *Raisons du rejet :* Complexité d'administration inutile pour le volume initial.
  
  
-**Stockage Propre (Analytique / Application) :**
-*Option Retenue — Base relationnelle PostgreSQL :*
+**Stockage Propre (Analytique / Application) :**  
+  
+* *Option A (Retenue) — Base relationnelle PostgreSQL :*
 *Pourquoi :* Validation stricte du schéma, requêtage SQL puissant pour filtrer par thématiques ou départements franciliens, et prévention native des doublons via des contraintes d'unicité (ex: contrainte UNIQUE sur l'URL ou l'ID de l'article).
  
 * *Option B (Écartée) — Fichiers CSV nettoyés :*
@@ -163,13 +181,14 @@ flowchart TD
 
 ### 5.5 Boîte 5 : Surveiller (Observabilité)
 
-* **Option A (Retenue) — Prometheus + Grafana :**
-* *Pourquoi :* Prometheus collecte et historise les métriques du pipeline, tandis que Grafana fournit des tableaux de bord pour suivre les exécutions, leur durée, les erreurs de collecte et les volumes d'articles traités. Cette stack open source s'intègre à Docker Compose et pourra être reprise dans l'environnement de production.
+* **Option A (Retenue) — Prometheus + Alertmanager + Grafana :**
+* *Pourquoi :* Prometheus collecte et historise les métriques du pipeline, Alertmanager route les alertes par email (SMTP), tandis que Grafana fournit des tableaux de bord pour suivre les exécutions, leur durée, les erreurs de collecte et les volumes d'articles traités. Cette stack open source s'intègre à Docker Compose et pourra être reprise dans l'environnement de production.
 
 
 
 
 * **Option B (Écartée) — Logging structuré JSON + Webhooks de notifications (Discord/Slack) + Dashboard HTML :**
+* *Note :* les alertes passent par email via Alertmanager, pas par webhook Discord/Slack.
 * *Raisons du rejet :* Cette solution fournit un suivi moins centralisé et moins adapté à l'historisation et à la visualisation des métriques que Prometheus et Grafana.
 
 
@@ -197,7 +216,7 @@ flowchart TD
 
 | Risque identifié | Impact | Probabilité | Mitigation retenue |
 | --- | --- | --- | --- |
-| **Changement/Indisponibilité d'un flux RSS** | Élevé | Moyenne | Traitement des erreurs HTTP avec retries, journalisation dans l'observabilité et alerte Discord.|
+| **Changement/Indisponibilité d'un flux RSS** | Élevé | Moyenne | Traitement des erreurs HTTP avec retries, journalisation dans l'observabilité et alerte par email (Alertmanager).|
 | **Panne ou retard d'exécution de l'ordonnanceur à 7 h** | Élevé | Faible | Notification automatique d'échec et procédure de relance manuelle décrite dans le runbook.|
 | **Présence d'articles doublons entre sources** | Moyen | Élevée | Hachage du titre/URL lors du passage au stockage propre pour filtrer les réimpressions.|
 | **Changement de format XML (champs manquants)** | Moyen | Moyenne | Règles de contrôle qualité écartant les items incomplets et générant un rapport.|
