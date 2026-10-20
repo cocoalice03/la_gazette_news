@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+<title>Flux de test</title>
+<link>https://exemple.fr</link>
+<description>Cas limites pour le parseur</description>
+<item>
+<title>Article complet avec du HTML dans l'extrait</title>
+<link>https://exemple.fr/politique/article-complet</link>
+<guid>exemple-1</guid>
+<category>Politique</category>
+<description><![CDATA[<p>Un <strong>extrait</strong> avec   des balises</p><img src="https://exemple.fr/image.jpg"/>]]></description>
+<pubDate>Tue, 20 Oct 2026 08:30:00 +0200</pubDate>
+</item>
+<item>
+<title>Article sans lien</title>
+<description>Cet item doit être écarté.</description>
+<pubDate>Tue, 20 Oct 2026 09:00:00 +0200</pubDate>
+</item>
+<item>
+<title>Article sans date</title>
+<link>https://exemple.fr/societe/article-sans-date</link>
+<description>Cet item doit être écarté.</description>
+</item>
+<item>
+<link>https://exemple.fr/societe/article-sans-titre</link>
+<description>Cet item doit être écarté.</description>
+<pubDate>Tue, 20 Oct 2026 10:00:00 +0200</pubDate>
+</item>
+<item>
+<title>Article avec un long extrait</title>
+<link>https://exemple.fr/culture/cinema/article-long</link>
+<description>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</description>
+<pubDate>Tue, 20 Oct 2026 11:00:00 +0200</pubDate>
+</item>
+</channel>
+</rss>
