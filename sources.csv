@@ -1,0 +1,9 @@
+nom,type,region,acces,conditions,notes
+Ouest-France,PQR,Bretagne / Pays de la Loire,https://www.ouest-france.fr/rss-en-continu.xml,Usage non commercial et lien obligatoire,Flux RSS standard avec extrait et rubrique
+La Voix du Nord,PQR,Hauts-de-France,https://www.lavoixdunord.fr/rss/une/flux.xml,Respect des droits d'auteur et courte citation,Extraction du titre et du chapeau
+Sud Ouest,PQR,Nouvelle-Aquitaine,https://www.sudouest.fr/une/rss.xml,Citation de la source avec lien retour,Rubriques bien identifiées dans le flux
+Le Télégramme,PQR,Bretagne,https://www.telegramme.fr/rss.xml,Pas de reprise intégrale et crédit requis,Flux réactif sur l'actualité régionale
+Le Monde,PQN,National,https://www.lemonde.fr/rss/une.xml,Réutilisation non commerciale et citation restreinte,Flux très stable mis à jour en continu
+Libération,PQN,National,https://www.liberation.fr/arc/outboundfeeds/rss/,Mention du crédit et lien vers l'article,Format RSS standardisé
+Le Figaro,PQN,National,https://www.lefigaro.fr/rss/figaro_une.xml,Usage privé ou académique uniquement,Titres et résumés bien structurés
+Les Échos,PQN,National,https://www.lesechos.fr/rss/rss_une.xml,Respect du droit de courte citation,Presse économique avec extraits concis
