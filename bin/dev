@@ -2,5 +2,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 [ -f .env ] || cp .env.example .env
-mkdir -p data
-docker compose up --build "$@"
+mkdir -p data/articles_bruts
+docker compose up --build --detach --wait "$@"
+echo "Airflow : http://localhost:8080 (DAG collecte_flux, toutes les 30 min)"
+echo "État des sources : bin/etat"

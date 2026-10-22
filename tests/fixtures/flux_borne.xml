@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:wfw="http://wellformedweb.org/CommentAPI/">
+<channel>
+<title>Flux de test</title>
+<link>https://exemple.fr</link>
+<description>Champs hors périmètre</description>
+<item>
+<title>Article avec tout ce qu'on ne garde pas</title>
+<link>https://exemple.fr/societe/article-complet</link>
+<guid>exemple-borne</guid>
+<dc:creator>Jeanne Martin</dc:creator>
+<description>Le chapeau seul est gardé.</description>
+<content:encoded><![CDATA[<p>Le texte intégral de l'article, qu'on ne stocke jamais.</p>]]></content:encoded>
+<media:content url="https://exemple.fr/photo.jpg" medium="image"/>
+<enclosure url="https://exemple.fr/photo.jpg" type="image/jpeg" length="1000"/>
+<comments>https://exemple.fr/societe/article-complet#commentaires</comments>
+<wfw:commentRss>https://exemple.fr/societe/article-complet/commentaires.xml</wfw:commentRss>
+<pubDate>Wed, 21 Oct 2026 18:00:00 +0200</pubDate>
+</item>
+</channel>
+</rss>

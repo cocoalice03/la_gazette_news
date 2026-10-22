@@ -3,7 +3,7 @@
 1. Outil : GitHub Actions, gratuit pour un dépôt public et intégré à la forge ; GitLab CI demanderait de migrer le dépôt, Jenkins un serveur à maintenir.
 2. Déclencheurs : chaque push sur `main` et chaque pull request (`.github/workflows/ci.yml`).
 3. Étapes : `lint` (ruff check et ruff format --check) et `tests` (pytest) en parallèle, puis `image` seulement si les deux sont verts.
-4. Les tests n'appellent jamais le réseau : flux enregistrés dans `tests/fixtures/`, transport HTTP simulé.
+4. Les tests n'appellent jamais Internet : flux enregistrés dans `tests/fixtures/`, serveur HTTP local pour simuler un éditeur en panne, PostgreSQL en service de la CI (schéma jetable par test).
 5. Image : Dockerfile multi-étapes, image finale `python:3.12-slim` sans outils de développement, utilisateur non root (uid 10001).
 6. Publication : sur `main` uniquement, dans `ghcr.io/cocoalice03/la_gazette_news`, avec le tag `AAAAMMJJHHMMSS-sha` (horodatage UTC et 7 premiers caractères du commit) et `latest`. Sur une pull request, l'image est construite mais pas publiée.
 7. Traçabilité : l'image porte les labels OCI `org.opencontainers.image.revision` (commit) et `org.opencontainers.image.source` (dépôt).

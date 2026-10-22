@@ -4,6 +4,7 @@
 venv
 .env
 data
+logs
 docs
 **/__pycache__
 **/*.egg-info

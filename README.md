@@ -6,7 +6,7 @@ Chaque matin, un pipeline lit les flux RSS de la presse quotidienne régionale (
 
 ## Prérequis
 
-Git et Docker (avec Docker Compose v2). Sous Windows, lancer les scripts depuis Git Bash ou WSL.
+Git et Docker (avec Docker Compose v2), 4 Go de mémoire pour Docker. Sous Windows, lancer les scripts depuis Git Bash ou WSL.
 
 ## Lancer le projet
 
@@ -15,9 +15,18 @@ git clone https://github.com/cocoalice03/la_gazette_news.git && cd la_gazette_ne
 bin/dev
 ```
 
-`bin/dev` crée `.env` à partir de `.env.example` s'il n'existe pas, construit l'image et démarre PostgreSQL puis la collecte. La collecte lit la source `Libération` et écrit ses items dans `data/brut/<source>-<horodatage>.json`.
+`bin/dev` crée `.env` à partir de `.env.example` s'il n'existe pas. Il construit les images puis démarre PostgreSQL et Airflow en arrière-plan.
 
-Pour une autre source de `sources.csv` : `SOURCE="Le Figaro" bin/dev`.
+Le DAG `collecte_flux` lit alors toutes les sources actives toutes les 30 minutes. Il écrit chaque nouvel item dans `data/articles_bruts/<source>/<id>.json`.
+
+| Pour | Faire |
+|---|---|
+| Suivre les exécutions | http://localhost:8080 |
+| Voir l'état des sources | `bin/etat` |
+| Lancer un passage sans attendre | `docker compose run --rm collecte` |
+| Tout arrêter | `docker compose down` |
+
+Le fonctionnement de la collecte (politesse, reprise, mise en sommeil, journaux) est décrit dans [docs/exploitation.md](docs/exploitation.md), les champs stockés dans [docs/donnees.md](docs/donnees.md).
 
 ## Tester
 
@@ -25,9 +34,11 @@ Pour une autre source de `sources.csv` : `SOURCE="Le Figaro" bin/dev`.
 bin/test
 ```
 
-Construit l'étape `test` du Dockerfile puis lance `ruff check`, `ruff format --check` et `pytest`. Les tests n'appellent pas le réseau : ils utilisent les flux enregistrés dans `tests/fixtures/`.
+Construit l'étape `test` du Dockerfile et démarre un PostgreSQL jetable. Lance ensuite `ruff check`, `ruff format --check` et `pytest`.
 
-Sans Docker :
+Les tests n'appellent pas Internet. Ils utilisent les flux enregistrés dans `tests/fixtures/` et un serveur HTTP local qui simule les éditeurs, y compris en panne.
+
+Sans Docker, les tests PostgreSQL sont ignorés, sauf si `GAZETTE_DSN_TEST` est défini :
 
 ```sh
 python -m venv .venv && . .venv/bin/activate
@@ -39,11 +50,12 @@ ruff check . && ruff format --check . && pytest
 
 | Chemin | Contenu |
 |---|---|
-| `src/gazette/` | Code du pipeline (`collecte.py` : lecture d'un flux, écriture JSON) |
-| `tests/` | Tests unitaires et flux enregistrés (`fixtures/`) |
-| `docs/` | Cadrage, stratégie CI/CD, puis documentation de chaque TD |
-| `infra/` | Description de l'infrastructure (à partir du TD 3) |
-| `bin/` | `dev` et `test` |
+| `src/gazette/` | Code du pipeline : `collecte.py` (lecture d'un flux), `collecteur.py` (passage sur toutes les sources), `stockage.py` (articles bruts), `depot.py` (état des sources), `migrations/` (SQL versionné) |
+| `dags/` | DAG Airflow |
+| `tests/` | Tests et flux enregistrés (`fixtures/`) |
+| `docs/` | Cadrage, CI/CD, données, exploitation, qualité |
+| `infra/` | Description de l'infrastructure |
+| `bin/` | `dev`, `test`, `etat` |
 | `.github/workflows/ci.yml` | Lint, tests, construction et publication de l'image |
 
 ## Image

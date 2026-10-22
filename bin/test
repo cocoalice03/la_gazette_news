@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 cd "$(dirname "$0")/.."
-docker build --target test -t la-gazette:test .
-docker run --rm la-gazette:test
+[ -f .env ] || cp .env.example .env
+projet=la-gazette-test
+trap 'docker compose -p "$projet" --profile test down --volumes --remove-orphans >/dev/null 2>&1' EXIT
+docker compose -p "$projet" --profile test run --rm --build tests

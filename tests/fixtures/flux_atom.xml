@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>Flux Atom de test</title>
+<id>urn:exemple:atom</id>
+<updated>2026-10-21T18:00:00+02:00</updated>
+<entry>
+<title>Un article Atom</title>
+<id>urn:exemple:atom:1</id>
+<link rel="alternate" href="https://exemple.fr/atom/article"/>
+<updated>2026-10-21T18:00:00+02:00</updated>
+<summary>Le résumé Atom</summary>
+</entry>
+</feed>
