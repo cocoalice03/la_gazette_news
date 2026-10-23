@@ -4,8 +4,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from conftest import lire
 
+from conftest import lire
 from gazette.collecte import (
     LONGUEUR_MAX_EXTRAIT,
     ErreurCollecte,

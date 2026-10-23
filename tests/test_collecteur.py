@@ -1,5 +1,4 @@
 from conftest import DepotMemoire, lire
-
 from gazette.collecte import nouveau_client
 from gazette.collecteur import SEUIL_SOMMEIL, collecter_tout
 from gazette.depot import EtatSource

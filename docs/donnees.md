@@ -76,3 +76,26 @@ SELECT source, sum(ecrits) AS articles FROM passages GROUP BY source ORDER BY ar
 SELECT nom, actif, echecs_consecutifs, derniere_erreur, en_sommeil_depuis
 FROM sources WHERE NOT actif OR echecs_consecutifs > 0;
 ```
+# Contrat de données & Conformité
+
+## 1. Schéma cible (`articles_propres`)
+Seules les données autorisées à la réutilisation sont conservées :
+- `id` (hash unique)
+- `raw_id` (traçabilité vers l'item brut)
+- `source_id` (nom du média)
+- `title` (titre normalisé)
+- `summary` (extrait court, max 300 char)
+- `url` (lien d'origine)
+- `published_at` (date UTC)
+
+> **Conformité RGPD** : Aucune donnée personnelle, nom d'auteur ou commentaire d'utilisateur n'est stocké.
+
+## 2. Politique de rétention
+- **Données brutes (`articles_bruts`)** : Rétention de 90 jours, puis purge automatique.
+- **Éditions / Gazette (`articles_propres`)** : Conservation de 30 jours en base active, puis archivage en stockage froid (JSON/Parquet compressé).
+
+## 3. Normalisation des rubriques (Mapping)
+Pour corriger la disparité observée entre sources (*Vox Politique*, *societe*, *etudiant*), un mapping unifié est appliqué :
+- `societe`, `société`, `faits-divers` ➔ `societe`
+- `vox-politique`, `politique` ➔ `politique`
+- `tech-web`, `high-tech`, `pixels` ➔ `technologie`

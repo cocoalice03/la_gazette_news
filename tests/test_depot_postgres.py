@@ -34,7 +34,12 @@ def connexion():
 
 
 def test_migrations_appliquees_une_seule_fois(connexion):
-    assert migrations.appliquer(connexion) == ["001_sources", "002_passages"]
+    assert migrations.appliquer(connexion) == [
+        "001_sources",
+        "002_passages",
+        "003_articles_propres",
+        "004_rejets",
+    ]
     assert migrations.appliquer(connexion) == []
 
 
